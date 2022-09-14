@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>USD to BTC</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            width: 100%;
+        }
+
+        .container {
+            width: 250px;
+            height: 250px;
+            margin-top: 10%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 10px 10px 10px 10px rgba(0,0,0,0.2);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="container">
+        <p>What is Bitcoin price today?</p>
+        <span id="btc_price"></span>
+        <p>How much $ do you have?</p>
+        <input id="usd_input" type="number"/>
+        <p>You can buy <span id="btc_available"></span> BTC</p>
+    </div>
+</main>
+<script>
+    const usdInput = document.querySelector('#usd_input');
+    const btcPriceSpan = document.querySelector('#btc_price');
+    const btcAvailableSpan = document.querySelector('#btc_available');
+    const DEFAULT_PRICE = 21000;
+    let btcPrice = DEFAULT_PRICE;
+
+    loadBtcPrice();
+    setBtcAvailable(0);
+
+    usdInput.addEventListener('input', (event) => {
+        const usd = Number(event.target.value);
+        if (usd) {
+            const btcAvailable = usd / btcPrice;
+            setBtcAvailable(btcAvailable.toFixed(7));
+        } else {
+            setBtcAvailable(0);
+        }
+    });
+
+    function setBtcPrice(price) {
+        btcPrice = price;
+        btcPriceSpan.textContent = price;
+    }
+
+    function setBtcAvailable(volume) {
+        btcAvailableSpan.textContent = volume;
+    }
+
+    function loadBtcPrice() {
+        const requestBtcPrice = new Promise((res, rej) => {
+            const apiUrl = 'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT';
+            const request = new XMLHttpRequest();
+            request.addEventListener('load', (data) => {
+                console.log('data: ', data);
+            });
+            request.addEventListener('error', (err) => {
+                console.log(err)
+                rej(err)
+            });
+            request.open('GET', apiUrl, false);
+            request.send(null);
+            const data = JSON.parse(request.responseText);
+            res(data);
+        });
+        requestBtcPrice.then((data) => {
+            const price = Number(data.price).toFixed(2);
+            setBtcPrice(price);
+        })
+        .catch(() => {
+            setBtcPrice(DEFAULT_PRICE)
+        });
+    }
+</script>
+</body>
+</html>
